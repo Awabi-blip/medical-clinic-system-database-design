@@ -603,16 +603,12 @@ Used where multiple roles share authority, (to support the index) e.g.:
 
 Most Queries have indexes, the functions and views will be explained in `ForFrontendEngineers.md` file.
 
+---
+
 # IMPORTANT 
 ## Limitations:
-- Nurses salary calculation function assumes all nurses get paid at one singular date on a month.
-Nurses salary calculation asssumes every month has 30 days.
-
 - Doctors cannot have overnight shifts (to prevent overlapping errors).
 
 - No implementation of parition on any tables, if a table exceeds more than 10 million rows and has alot of reads per second, it might struggle.
-
----
-P.S this is my second ever PostgreSQL project, which was built entirely for learning processs, it is not your go to business tool, it is better if you can use this template and customize it through a professional.
 
 ---
