@@ -12,6 +12,8 @@ The purpose of this database-heavy-backend is to provide a rigid structure for a
 
 Outside the scope of this project are Enterprise Grade hospital management, such as Surgery Rooms, Tracking Surgical Data, Psychological Wards, or Integration with other Enterprise systems for accurate medicinal data.
 
+---
+
 ## Functional Requirements
 ### Actors
 The database has a few actors all defined by this ENUM type: 
@@ -21,7 +23,11 @@ CREATE TYPE all_roles AS ENUM ('patient', 'doctor', 'nurse', 'hospital_manager',
 
 **profiles** every role has a few key information stored, such as name, email, phone_number and gender.
 
+---
+
 **patients** can signup and login via normal supabase login, make their profile, which will be added to the patients column, a doctor can then after diagnoses or when the patient visits, add data like, "bloodtype", "neurotype", or "chronic diseases".
+
+---
 
 **patients relationships** can provide an emergency contact, and could only be from a specific set of predefined values, described by this ENUM:
 
@@ -30,18 +36,27 @@ CREATE TYPE human_relationships AS ENUM ('Parent', 'Sibling', 'Relative', 'Spous
 ```
 They can have a gender, so a parent if male represents father, and conversely a female spouse would represent a wife, and they also have a phone number.
 
+---
+
 **nurses** they can sign up only through the hospital portal for admins (to be made), can have a shift_start and a shift_end
+
+---
 
 **doctors** they can also only sign up through the hospital portal, they have a more dedicated schedule table, where their schedule can vary per day,they also need a license number, an education and a specialization field (could be general specialization too) defined by this ENUM:
 ```SQL
 CREATE TYPE doctor_specializations AS ENUM ('Generalist', 'ENT', 'Pediatrician','Dermatologist', 'General_Physician', 'Gynecologist', 'Therapist', 'Orthopedic');
 ```
+---
 
 **db_admins** (cool people like me), they are required to have an education, an experience and a license number (usually given by the clinic itself).
 
 **hospital_managers** they are also required to have an education, an experience and they are assigned to their respective departments.
 
+---
+
 **management_staff** this is a composition of doctors, db_admins, and hospital_staff, usually linked with management decisions, updating profiles, appointments flow and such, assigining nurses to wards, patients to wards, items to wards or overall lookup for the clinic/hop.
+
+---
 
 ## Rules
 Overall structural rule enforcement for functionality within the database.
@@ -54,12 +69,19 @@ A **doctor** can start, cancel, add data to, or view their past/upcoming appoint
 - An appointment must be started before any data can be added to it.
 - A doctor may generate the bill for an appointment once it is done, through their manager roles
 
+---
+
 ### Billings
--- Todo
+Each appointment has a bill generated from the doctor's daily charge and the duration of the appointment
+- A **patient** can not have more than 3 unpaid **appointments**
+- Each time a bill is added, the **appointment_id** for that appointment is referenced and if a patient has more
+than **3 unpaid bills**, they cannot book another appointment.
+
+---
 
 ### Wards and Inventory
-
 Their are a total of 7 wards in the clinic as represented by this ENUM:
+
 ```SQL
 CREATE TYPE "ward_name" AS ENUM ('tulip', 'daisy', 'jasmine', 
 'lavender', 'blossom', 'rose', 'sunflower');
@@ -68,17 +90,17 @@ and a few items that can be placed in each ward in certain amounts namely:
 ```SQL
 CREATE TYPE item_type AS ENUM ('ventilator', 'drip_setup', 'syringes', 'massagers', '60W_batteries', '30W_batteries', 'rose_water', 'protein_wheat_biscuits', 'vitamin_supplements');
 ```
+
+- Each ward has a few beds capacity, with the **highest being sunflower (emergency ward)** with 15 and the **lowest being Rose (2) for (gynecology operations ward)**.
+
 There is as such no capacity that can be assigned within each ward, but all these items have an amount, and are connected through a transaction such that the data inside the database is consistent.
 The ward can be assigned items, if the items available are less than what the ward requires, but it is an emergency, then all those items that are available are assigned to the ward.
 Note: a manager role is usually required for items to wards assignement.
 
+---
 
-### Nurse Deductions
-
-### Items Assignment
-
-### Patients Assignment
-
+### Nurse Deductions and Salary
+- The **nurses_time_deductions** holds nurse's daily deductions for how many hours they were absent, do **(shift_end - shift_start for whole day)** that can be used to as a reference when calculating their salary in the **nurses_salary** table.
 
 
 ## Relationships and Entities
@@ -86,7 +108,7 @@ Note: a manager role is usually required for items to wards assignement.
 
 The core entities in the database are patients, doctors, nurses, items, pharmacists, wards, inventory and how each of these relate to each other
 
-There is a base table profiles, which has the core information such as 
+There is a base table **profiles**, which has the core information such as 
 
 ```SQL
 first_name TEXT,
@@ -114,8 +136,9 @@ The trigger **check_doctor_no_extra_roles** enforces that if someone already has
 
 The reason for using a composite primary key here, was because one id can have more than one role, but there can not be duplicates of one id having multiple of the same role (not an issue for visuals but data redundancy invalidates 1NF constraints).
 
+---
 
-The patients table
+The **patients** table
 ```SQL
     "allergies" TEXT[] DEFAULT NULL,
     "bloodtype" bloodtype DEFAULT NULL,
@@ -137,6 +160,8 @@ CREATE TYPE neurotype AS ENUM ('Typical', 'ASD', 'ADHD', 'OCD', 'BPD', 'Dyslexia
 
 Note: I am not from the medical field and I did not know that BPD is not a neurotype but rather a personality disorder, but I kept it in the ENUM because the removal process is way too hectic.
 
+---
+
 **Pharmacists and Nurses**
 ```SQL
 "shift_start" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_start") = 0),
@@ -145,6 +170,8 @@ Note: I am not from the medical field and I did not know that BPD is not a neuro
 in addition pharmacists have a CHAR(8) license number.
 
 Time(0) ensures no microseconds are added and the seconds that a shift must start at is set to 0 to avoid weird shift starts or ends.
+
+---
 
 **Wards**
 ```SQL
@@ -163,7 +190,9 @@ The check constraint enforces that there can't be anomalous values where total_b
 The flower names for wards is because of a personal liking and choice.
 
 This is lookup table that and the values stored in it are also based on personal intuition:
-![alt text](image.png)
+<img width="743" height="508" alt="image" src="https://github.com/user-attachments/assets/aa5707f2-d4a7-4546-ac38-f87a7ab4dab4" />
+
+---
 
 **Items** (table name -> item_store_room)
 ```SQL
@@ -177,11 +206,13 @@ The item_type ENUM goes like this:
 CREATE TYPE item_type AS ENUM ('ventilator', 'drip_setup','syringes', 'massagers', '60W_batteries', '30W_batteries', 'rose_water','protein_wheat_biscuits', 'vitamin_supplements');
 ```
 This is also a lookup table and values stored in it are:
-![alt text](image-1.png)
+<img width="1263" height="650" alt="image" src="https://github.com/user-attachments/assets/2f63aa01-6acf-45ad-b7df-a48868f8486f" />
 
 **return_status** set to true means that upon borrowing these items can be returned and the **amount_total** stays the same, when the item is assigned to a ward.
 
 In case of **return_status** being false the **amount_total** is also decreased when the item is assigned to a ward.
+
+---
 
 **Medication Inventory**
 ```SQL
@@ -205,7 +236,7 @@ CREATE TYPE dosage_units AS ENUM ('mg', 'mg/ml', 'mg/5ml', 'IU/ml', '%', 'mg/g',
 The reason for quadruple primary key is because one medicine, i.e Ibuprofen with its unique ID from medication_names table (more on this in the relationships) in the FK column let's assume 37, 37 can then have, 300, tablets, mg, 1, and also can have 400, tablets, mg, 1 and can also have, 300, syrup, mg/ml and 1 so if only those 4 itmes can ever be unique, as under the same name a medicine can have different strengths in different forms and different units too. A tablet can have mg or mcg while having same strength number i.e 300.
 
 ### ERD
-![alt text](../ERD.png)
+<img width="2610" height="1442" alt="image" src="https://github.com/user-attachments/assets/2af79610-e6c4-4480-9206-cd0763ef67c4" />
 - Generated by pgAdmin4
 
 #### Patients and Doctors
@@ -222,6 +253,7 @@ One doctor can have many appointments with different patients (but not many with
 The appointments table has key information that the doctor can add, the diagnoses or any notes.
 
 ---
+
 #### Appointments and Billings
 ```
 appointments and bills are related via the appointments_billing table, that calculates the bill based on the time and doctor's hourly charge on that day via the bill_appointments function.
@@ -238,6 +270,7 @@ apointments and prescriptions are related via the prescriptions table, where eac
 The relationship between them is One to Many (one appointment session can have many many prescriptions.)
 ```
 ---
+
 #### Doctor and Schedules
 
 ```
@@ -249,6 +282,7 @@ The relationship between them is One to Many (usually upto 7 because one doctor 
 doctor_schedule table holds a daily shift_start to shift_end data, and their hourly rate per day. Overnight shifts are disallowed because of scope management (they were extremely hard to implement with days and stuff without proper dating system which is fine for a clinic
 
 ---
+
 #### Patients and Wards
 
 ```
@@ -259,6 +293,7 @@ The relationship between them Many to Many but one patient in one ward at one ti
 One patient can only be in ward ward at one continous period in time, (enforced by a unique index) but they can have a history of overall being in alot of wards and one ward can have more than one patient at a time.
 
 ---
+
 #### Nurses, assignements, salaries.
 ---
 ```
@@ -280,6 +315,7 @@ nurses and cutoffs are related via nurses and nurse_time_deductions.
 The relationship between them is One to Many (as one nurse can have many time deductions) (each salary deduction maps to one nurse only)
 ```
 ---
+
 #### Items and Wards
 
 ```
@@ -288,6 +324,7 @@ items and wards are related via the items_in_wards table.
 it is a many to many relationship as one item can be in many wards and many wards can have that item at the same time (tho not more than the quantity allows)
 ```
 ---
+
 #### Medication and Inventory
 
 ```
