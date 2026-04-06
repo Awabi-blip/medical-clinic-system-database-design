@@ -115,21 +115,9 @@ BEGIN
         FROM appointments
         WHERE doctor_id = f_doctor_id 
         AND "scheduled_at" = v_scheduled_at
-        AND "status" != 'completed'
+        AND "status" NOT IN ('completed', 'scheduled')
     ) THEN
         RAISE EXCEPTION 'doctor either booked from before or done with the appointment';
-    END IF;
-    
-    IF EXISTS (
-        SELECT 1
-        FROM appointments
-        WHERE doctor_id = f_doctor_id
-        AND (v_scheduled_at, (v_scheduled_at + f_duration_hours * INTERVAL '1 hour')) 
-        OVERLAPS 
-        (scheduled_at, (scheduled_at + duration_hours * INTERVAL '1 hour'))
-        AND "status" NOT IN ('completed', 'cancelled')
-    ) THEN
-        RAISE EXCEPTION 'time overlapping';
     END IF;
     
     INSERT INTO appointments 
