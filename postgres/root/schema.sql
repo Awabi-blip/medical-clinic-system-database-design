@@ -45,6 +45,9 @@ CREATE TYPE worker_role AS ENUM ('nurses', 'pharmacists');
 CREATE TABLE IF NOT EXISTS "worker_staff"(
     "id" UUID,
     "role" worker_role,
+    "shift_start" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_start") = 0),
+    "shift_end" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_end") = 0),
+    -- adding this here because of super table shuld have all rows that the sub tables will all have, management staff doesnt need this because only doctors have day based schedule changes.
     PRIMARY KEY ("id", "role"),
     FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE
 );
@@ -94,7 +97,6 @@ CREATE TABLE IF NOT EXISTS "emergency_patients_contact" (
 
 CREATE TABLE IF NOT EXISTS "nurses" (
     "id" UUID,
-    "shift_start" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_start") = 0),
     "shift_end" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_end") = 0),
     "bio" TEXT,
     PRIMARY KEY ("id"),
@@ -257,8 +259,6 @@ CREATE TYPE dosage_units AS ENUM ('mg', 'mg/ml', 'mg/5ml', 'IU/ml', '%', 'mg/g',
 CREATE TABLE "pharmacists"(
     "id" UUID,
     "license_number" CHAR(8), --if 6 digit add a 00 padding.
-    "shift_start" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_start") = 0),
-    "shift_end" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_end") = 0),
     PRIMARY KEY ("id"),
     FOREIGN KEY ("id") REFERENCES profiles("id") ON DELETE CASCADE
 );
