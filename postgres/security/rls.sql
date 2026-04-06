@@ -27,8 +27,8 @@ ALTER TABLE prescriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments_billing ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE nurses_salary ENABLE ROW LEVEL SECURITY;
-ALTER TABLE nurse_time_deductions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workers_salary ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workers_time_deductions ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
@@ -425,28 +425,41 @@ prescriptions FOR SELECT TO authenticated USING (
 """*/
 
 
-/*"""                         NURSES SALARY
+/*"""                         Workers SALARY
 ============================================================================================================================================================
 ============================================================================================================================================================
 ============================================================================================================================================================
 
 """*/
 
-CREATE POLICY nurses_see_their_salary 
-ON nurses_salary FOR SELECT TO authenticated USING (
-    nurse_id = (select auth.uid())
+CREATE POLICY management_staff_manage_workers_salary
+ON workers_salary FOR ALL TO authenticated USING 
+(
+    EXISTS (SELECT 1 FROM management_staff WHERE id = (select auth.uid()))
+);
+    
+
+CREATE POLICY workers_see_their_salary 
+ON workers_salary FOR SELECT TO authenticated USING (
+    worker_id = (select auth.uid())
 );
 
 
-/*"""                         NURSES TIME DEDUCTION
+/*"""                         Workers TIME DEDUCTION
 ============================================================================================================================================================
 ============================================================================================================================================================
 ============================================================================================================================================================
 
 """*/
+CREATE POLICY management_staff_manage_workers_time_deductions
+ON workers_time_deductions FOR ALL TO authenticated USING 
+(
+    EXISTS (SELECT 1 FROM management_staff WHERE id = (select auth.uid()))
+);
 
-CREATE POLICY nurse_see_their_time_deductions 
-ON nurse_time_deductions FOR SELECT TO authenticated 
+
+CREATE POLICY workers_see_their_deductions 
+ON workers_time_deductions FOR SELECT TO authenticated 
 USING (
     nurse_id = (select auth.uid())
 );
