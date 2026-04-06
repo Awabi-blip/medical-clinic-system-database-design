@@ -23,8 +23,9 @@ WITH (security_invoker = true) AS
 
 CREATE OR REPLACE FUNCTION cancel_appointment_doctor (
     f_appointment_id BIGINT
-) RETURNS VOID AS $$
+) RETURNS VOID 
 SECURITY DEFINER
+AS $$
 DECLARE
     v_doctor_id UUID;
 BEGIN
@@ -50,8 +51,9 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION start_appointment(
     f_appointment_id BIGINT
-) RETURNS VOID AS $$
+) RETURNS VOID
 SECURITY DEFINER
+AS $$
 DECLARE 
 v_doctor_id UUID;
 v_scheduled_at TIMESTAMPTZ;
@@ -93,8 +95,9 @@ CREATE OR REPLACE FUNCTION add_data_to_appointment(
     f_note TEXT, 
     f_diagnoses TEXT
 )
-RETURNS VOID AS $$   
+RETURNS VOID 
 SECURITY DEFINER
+AS $$   
 DECLARE
     v_doctor_id UUID;
 BEGIN
@@ -125,8 +128,9 @@ CREATE OR REPLACE FUNCTION add_prescriptions (
     f_appointment_id BIGINT,
     prescription_data jsonb
 )
-RETURNS VOID AS $$
+RETURNS VOID 
 SECURITY DEFINER
+AS $$
 DECLARE 
 v_doctor_id UUID;
 BEGIN
@@ -165,8 +169,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION bill_appointment(
     f_appointment_id BIGINT, f_optional_custom_time_value DECIMAL(2,1) DEFAULT NULL
 )
-RETURNS VOID AS $$
+RETURNS VOID 
 SECURITY DEFINER
+AS $$
 DECLARE
     v_doctor_id UUID;
     v_total_bill DECIMAL(8,4);
