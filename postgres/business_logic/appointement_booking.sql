@@ -47,8 +47,9 @@ CREATE OR REPLACE FUNCTION add_appointment(
     f_time TIME, 
     f_duration_hours DECIMAL(2,1)
 )
-RETURNS BIGINT AS $$
+RETURNS BIGINT
 SECURITY DEFINER
+AS $$
 DECLARE 
     v_doctor_shift_start TIME;
     v_doctor_shift_end TIME;
@@ -126,6 +127,7 @@ BEGIN
         AND (v_scheduled_at, (v_scheduled_at + f_duration_hours * INTERVAL '1 hour')) 
         OVERLAPS 
         (scheduled_at, (scheduled_at + duration_hours * INTERVAL '1 hour'))
+        AND "status" NOT IN ('completed', 'cancelled')
     ) THEN
         RAISE EXCEPTION 'time overlapping';
     END IF;
@@ -161,8 +163,9 @@ WITH (security_invoker = true) AS
 CREATE OR REPLACE FUNCTION cancel_appointment_patient(
     f_appointment_id BIGINT
 )
-RETURNS VOID AS $$
+RETURNS VOID 
 SECURITY DEFINER
+AS $$
 DECLARE
     v_patient_id UUID;
     v_status appointment_status;
@@ -225,8 +228,9 @@ CREATE OR REPLACE FUNCTION pay_for_appointments_in_house(
     f_method payment_method,
     f_paid_at TIMESTAMPTZ DEFAULT NULL
 )
-RETURNS VOID AS $$
+RETURNS VOID 
 SECURITY DEFINER
+AS $$
 DECLARE
     v_manager_id UUID;
     v_status appointment_status;
