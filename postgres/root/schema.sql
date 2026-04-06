@@ -31,13 +31,21 @@ CREATE TABLE IF NOT EXISTS "active_users_role"(
     FOREIGN KEY ("user_id", "role") REFERENCES user_roles("id", "role")
 );
 
-
 CREATE TYPE staff_role AS ENUM ('hospital_manager', 'doctor', 'db_admin');
 
 CREATE TABLE IF NOT EXISTS "management_staff" (
     "id" UUID,
     "role" staff_role,
     PRIMARY KEY ("id", "role"),  -- composite PK prevents duplicate roles
+    FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE
+);
+
+CREATE TYPE worker_role AS ENUM ('nurses', 'pharmacists');
+
+CREATE TABLE IF NOT EXISTS "worker_staff"(
+    "id" UUID,
+    "role" worker_role,
+    PRIMARY KEY ("id", "role"),
     FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE
 );
 
@@ -91,29 +99,6 @@ CREATE TABLE IF NOT EXISTS "nurses" (
     "bio" TEXT,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE,
-);
-
-CREATE TABLE "nurse_time_deductions" (
-    "id" SERIAL,
-    "nurse_id" UUID NOT NULL,
-    "date_of_absence" DATE NOT NULL,
-    "hours_deducted" INT NOT NULL,
-    "reason" TEXT NOT NULL, -- e.g., "Sick leave", "Late arrival", "Unapproved absence"
-    "logged_by" UUID NOT NULL,
-    "logger_role" staff_role NOT NULL,
-    PRIMARY KEY("id"),
-    FOREIGN KEY("nurse_id") REFERENCES nurses("id") ON DELETE CASCADE,
-    FOREIGN KEY("logged_by", "logger_role") REFERENCES "management_staff"("id","role")
-);
-
-CREATE TABLE IF NOT EXISTS "nurses_salary" (
-  "id" SERIAL,
-  "nurse_id" UUID NOT NULL,
-  "month" INT DEFAULT EXTRACT(MONTH FROM CURRENT_DATE) CHECK ("month" BETWEEN 1 AND 12),
-  "year" INT DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
-  "salary" DECIMAL(12,4),
-  PRIMARY KEY ("id"),
-  FOREIGN KEY ("nurse_id") REFERENCES nurses("id") ON DELETE CASCADE
 );
 
 CREATE TYPE doctor_specializations AS ENUM ('Generalist', 'ENT', 'Pediatrician', 'Dermatologist',
@@ -276,6 +261,31 @@ CREATE TABLE "pharmacists"(
     "shift_end" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_end") = 0),
     PRIMARY KEY ("id"),
     FOREIGN KEY ("id") REFERENCES profiles("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "workers_time_deductions" (
+    "id" SERIAL,
+    "worker_id" UUID NOT NULL,
+    "worker_role" worker_role,
+    "date_of_absence" DATE NOT NULL,
+    "hours_deducted" INT NOT NULL,
+    "reason" TEXT NOT NULL, -- e.g., "Sick leave", "Late arrival", "Unapproved absence"
+    "logged_by" UUID NOT NULL,
+    "logger_role" staff_role NOT NULL,
+    PRIMARY KEY("id"),
+    FOREIGN KEY("worker_id", "worker_role") REFERENCES worker_staff("id", "role") ON DELETE CASCADE,
+    FOREIGN KEY("logged_by", "logger_role") REFERENCES "management_staff"("id","role")
+);
+
+CREATE TABLE IF NOT EXISTS "workers_salary" (
+  "id" SERIAL,
+  "worker_id" UUID NOT NULL,
+  "worker_role" worker_role,
+  "month" INT DEFAULT EXTRACT(MONTH FROM CURRENT_DATE) CHECK ("month" BETWEEN 1 AND 12),
+  "year" INT DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
+  "salary" DECIMAL(12,4),
+  PRIMARY KEY ("id"),
+  FOREIGN KEY ("worker_id", "worker_role") REFERENCES worker_staff("id","role") ON DELETE CASCADE
 );
 
 
