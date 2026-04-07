@@ -648,6 +648,7 @@ Most Queries have indexes, the functions and views will be explained in `ForFron
 
 - No implementation of parition on any tables, if a table exceeds more than 10 million rows and has alot of reads per second, it might struggle.
 
+- I am still working on this project, bugs and fixes, documenting, but the main structure is thoroguh and works.
+
 ---
 
-I am still working on this project, bugs and fixes, do not use in production yet.
