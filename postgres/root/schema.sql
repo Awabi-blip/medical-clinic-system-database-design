@@ -47,11 +47,12 @@ CREATE TABLE IF NOT EXISTS "worker_staff"(
     "role" worker_role,
     "shift_start" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_start") = 0),
     "shift_end" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_end") = 0),
-    -- adding this here because of super table shuld have all rows that the sub tables will all have, management staff doesnt need this because only doctors have day based schedule changes.
+    CHECK ("shift_start" < "shift_end"),
+    "joined_at" DATE NOT NULL DEFAULT NOW(),
     PRIMARY KEY ("id", "role"),
     FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE
 );
-
+    
 CREATE TABLE IF NOT EXISTS "db_admins"(
     "id" UUID,
     "education" TEXT NOT NULL,
@@ -97,10 +98,10 @@ CREATE TABLE IF NOT EXISTS "emergency_patients_contact" (
 
 CREATE TABLE IF NOT EXISTS "nurses" (
     "id" UUID,
-    "shift_end" TIME(0) NOT NULL CHECK (EXTRACT(SECOND FROM "shift_end") = 0),
     "bio" TEXT,
+    "license_number" CHAR(9),
     PRIMARY KEY ("id"),
-    FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY ("id") REFERENCES profiles(id) ON DELETE CASCADE
 );
 
 CREATE TYPE doctor_specializations AS ENUM ('Generalist', 'ENT', 'Pediatrician', 'Dermatologist',
@@ -268,7 +269,7 @@ CREATE TABLE IF NOT EXISTS "workers_time_deductions" (
     "worker_id" UUID NOT NULL,
     "worker_role" worker_role,
     "date_of_absence" DATE NOT NULL,
-    "hours_deducted" INT NOT NULL,
+    "hours_deducted" DECIMAL(2,1) NOT NULL,
     "reason" TEXT NOT NULL, -- e.g., "Sick leave", "Late arrival", "Unapproved absence"
     "logged_by" UUID NOT NULL,
     "logger_role" staff_role NOT NULL,
@@ -282,12 +283,12 @@ CREATE TABLE IF NOT EXISTS "workers_salary" (
   "worker_id" UUID NOT NULL,
   "worker_role" worker_role,
   "month" INT DEFAULT EXTRACT(MONTH FROM CURRENT_DATE) CHECK ("month" BETWEEN 1 AND 12),
-  "year" INT DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
+  "year" INT DEFAULT EXTRACT(YEAR FROM CURRENT_DATE) CHECK("year" > 2015), -- maybe if the hospital was built in 2015
+  -- check via trigger that there are no salaries in the past or future
   "salary" DECIMAL(12,4),
   PRIMARY KEY ("id"),
   FOREIGN KEY ("worker_id", "worker_role") REFERENCES worker_staff("id","role") ON DELETE CASCADE
 );
-
 
 CREATE TABLE IF NOT EXISTS "allowed_dosage_units"(
     "dosage_form" dosage_form NOT NULL,
