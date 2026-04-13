@@ -58,6 +58,10 @@ CREATE TYPE doctor_specializations AS ENUM ('Generalist', 'ENT', 'Pediatrician',
 
 ---
 
+**worker_staff** this is a composition of pharmacists, and nurses, since they have fixed shift times every day and to calculate their salaries and deductions, I made a junction table for them too.
+
+---
+
 ## Rules
 Overall structural rule enforcement for functionality within the database.
 
@@ -99,8 +103,8 @@ Note: a manager role is usually required for items to wards assignement.
 
 ---
 
-### Nurse Deductions and Salary
-- The **nurses_time_deductions** holds nurse's daily deductions for how many hours they were absent, do **(shift_end - shift_start for whole day)** that can be used to as a reference when calculating their salary in the **nurses_salary** table.
+### Workers Deductions and Salary
+- The **workers_time_deductions** holds nurse's daily deductions for how many hours they were absent, do **(shift_end - shift_start for whole day)** that can be used to as a reference when calculating their salary in the **workers_salary** table.
 
 
 ## Relationships and Entities
@@ -294,7 +298,7 @@ One patient can only be in ward ward at one continous period in time, (enforced 
 
 ---
 
-#### Nurses, assignements, salaries.
+#### Nurses, assignements
 ---
 ```
 nurses and assignments are related via the nurses_in_wards where each nurse can be assigned to no more than 3 wards and each ward shall be unique
@@ -303,16 +307,9 @@ The relationship between them is Many to Many (upto 3 at a time.) as one nurse c
 ```
 
 ```
-nurses and salaries are related via the nurses_salary
-table 
-
 The relationship between them is One to Many (as one nurse can have many time deductions) (each salary maps to one nurse only)
 ```
 
-```
-nurses and cutoffs are related via nurses and nurse_time_deductions.
-
-The relationship between them is One to Many (as one nurse can have many time deductions) (each salary deduction maps to one nurse only)
 ```
 ---
 
@@ -332,6 +329,15 @@ The medication names are stored in medication_name table
 which are then related to inventory by the medication_inventory table
 
 It is a one to many relationship, as one medication can have multiple inventory records, i.e with different forms or potencies, but each of those records only point to one medication.
+```
+
+#### Workers and Salary and Deductions
+```
+workers and salaries are related by workers_salary table, where it has a one to many relationship
+```
+
+```
+workers and their deductions are related by the workers_time_deductions table, where it has a one to many relationship
 ```
 
 # Security Rules
