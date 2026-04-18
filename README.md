@@ -196,7 +196,7 @@ The flower names for wards is because of a personal liking and choice.
 
 This is lookup table that and the values stored in it are also based on personal intuition:
 
-<img width="743" height="508" alt="image" src="https://thub.com/user-attachments/assets/aa5707f2-d4a7-4546-ac38-f87a7ab4dab4" />
+<img width="743" height="508" alt="image" src="https://github.com/user-attachments/assets/b6858616-324d-4c8b-aa93-38bc5ac095a9" />
 
 
 ---
