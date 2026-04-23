@@ -58,6 +58,7 @@ DECLARE
     v_appointment_id BIGINT;
     v_count_unpaid_appointments SMALLINT;
     v_count_scheduled_appointments SMALLINT;
+    v_total_doctor_appointments SMALLINT;
     v_scheduled_at TIMESTAMPTZ;
 BEGIN
     v_patient_id := auth.uid();
@@ -84,6 +85,16 @@ BEGIN
     IF v_count_unpaid_appointments > 3 THEN 
         RAISE EXCEPTION 'clear your dues';
     END IF;
+
+    SELECT COUNT(1) INTO v_total_doctor_appointments
+    FROM appointments
+    WHERE doctor_id = f_doctor_id
+    AND "status" = 'scheduled';
+
+    IF v_total_doctor_appointments > 50
+           THEN RAISE EXCEPTION 'doctor is busy';
+    END IF;
+           
     
     v_appointment_day := to_char(f_date, 'FMDay')::working_days;
     
