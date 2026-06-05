@@ -14,16 +14,15 @@ EXCLUDE USING gist
 (
     doctor_id WITH =,
     tstzrange(scheduled_at, scheduled_at + (duration_hours * 'Interval 1 hour')) WITH &&
-) WHERE status IN ('scheduled', 'on_going');
+) WHERE (status IN ('scheduled', 'on_going'));
 
 ALTER TABLE appointments
 ADD CONSTRAINT no_overlapping_appointments_patients
 EXCLUDE USING gist
 (
     patient_id WITH =,
-    scheduled_at =,
     tstzrange(scheduled_at, scheduled_at + (duration_hours * 'Interval 1 hour')) WITH &&
-) WHERE status IN ('scheduled', 'on_going');
+) WHERE (status IN ('scheduled', 'on_going'));
 
 ALTER TABLE worker_staff
 ADD CONSTRAINT no_overlapping_shifts
