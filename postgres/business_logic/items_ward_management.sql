@@ -77,13 +77,18 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION return_items_to_store(
-    f_item_type item_type, f_amount_returned INT, ward_name ward_name)
+    f_item_type item_type, f_amount_returned INT, f_ward_name ward_name)
 RETURNS VOID AS $$
 SECURITY DEFINER
 DECLARE
     v_return_status BOOLEAN;
     v_manager_id UUID;
+    v_amount_used INT;
 BEGIN 
+
+    IF f_amount_returned <= 0 
+       THEN RAISE EXCEPTION 'cannot return negative items';
+    END IF;
 
     v_manager_id = auth.uid();
     
@@ -96,9 +101,20 @@ BEGIN
     INTO v_return_status
     FROM item_store_room
     WHERE item_type = f_item_type;
-    
+
     IF v_return_status = FALSE THEN
         RAISE EXCEPTION 'do not return sensitive items back';
+    END IF;
+
+    SELECT amount_used
+    INTO v_amount_used
+        FROM items_in_wards
+        WHERE ward_name = f_ward_name
+        AND item_type = f_item_type
+    FOR UPDATE;
+
+    IF f_amount_returned > v_amount_used
+        THEN RAISE EXCEPTION 'do not return more than you took';
     END IF;
 
     UPDATE item_store_room
@@ -107,7 +123,8 @@ BEGIN
 
     UPDATE items_in_wards 
     SET amount_used = amount_used - f_amount_returned
-    WHERE item_type = f_item_type;
+    WHERE item_type = f_item_type
+       AND ward_name = f_ward_name;
 END;
 $$ LANGUAGE plpgsql;
 
